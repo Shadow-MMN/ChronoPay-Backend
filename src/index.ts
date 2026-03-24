@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { validateRequiredFields } from "./middleware/validation";
+import { validateRequiredFields } from "./middleware/validation.js";
+import { errorHandler, notFoundMiddleware } from "./middleware/errorHandler.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -47,6 +48,12 @@ app.post(
     });
   },
 );
+
+// 404 handler for unmatched routes
+app.use(notFoundMiddleware);
+
+// Global error handler
+app.use(errorHandler);
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
