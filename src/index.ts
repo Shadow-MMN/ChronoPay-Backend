@@ -1,57 +1,73 @@
 import express from "express";
 import cors from "cors";
-import { validateRequiredFields } from "./middleware/validation";
-
-const app = express();
-const PORT = process.env.PORT ?? 3001;
-
-app.use(cors());
-app.use(express.json());
-
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 
-const options = {
-  swaggerDefinition: {
-    openapi: "3.0.0",
-    info: { title: "ChronoPay API", version: "1.0.0" },
-  },
-  apis: ["./src/routes/*.ts"], // adjust if needed
-};
+import { loadEnvConfig, type EnvConfig } from "./config/env.js";
+import { validateRequiredFields } from "./middleware/validation.js";
 
-const specs = swaggerJsdoc(options);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+const config = loadEnvConfig();
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok", service: "chronopay-backend" });
-});
+interface AppListener {
+  listen(port: number, callback?: () => void): unknown;
+}
 
-app.get("/api/v1/slots", (_req, res) => {
-  res.json({ slots: [] });
-});
+export function createApp() {
+  const app = express();
 
-app.post(
-  "/api/v1/slots",
-  validateRequiredFields(["professional", "startTime", "endTime"]),
-  (req, res) => {
-    const { professional, startTime, endTime } = req.body;
+  app.use(cors());
+  app.use(express.json());
 
-    res.status(201).json({
-      success: true,
-      slot: {
-        id: 1,
-        professional,
-        startTime,
-        endTime,
-      },
-    });
-  },
-);
+  const options = {
+    swaggerDefinition: {
+      openapi: "3.0.0",
+      info: { title: "ChronoPay API", version: "1.0.0" },
+    },
+    apis: ["./src/routes/*.ts"], // adjust if needed
+  };
 
-if (process.env.NODE_ENV !== "test") {
-  app.listen(PORT, () => {
-    console.log(`ChronoPay API listening on http://localhost:${PORT}`);
+  const specs = swaggerJsdoc(options);
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+
+  app.get("/health", (_req, res) => {
+    res.json({ status: "ok", service: "chronopay-backend" });
   });
+
+  app.get("/api/v1/slots", (_req, res) => {
+    res.json({ slots: [] });
+  });
+
+  app.post(
+    "/api/v1/slots",
+    validateRequiredFields(["professional", "startTime", "endTime"]),
+    (req, res) => {
+      const { professional, startTime, endTime } = req.body;
+
+      res.status(201).json({
+        success: true,
+        slot: {
+          id: 1,
+          professional,
+          startTime,
+          endTime,
+        },
+      });
+    },
+  );
+
+  return app;
+}
+
+export function startServer(app: AppListener, runtimeConfig: EnvConfig) {
+  return app.listen(runtimeConfig.port, () => {
+    console.log(`ChronoPay API listening on http://localhost:${runtimeConfig.port}`);
+  });
+}
+
+const app = createApp();
+
+if (config.nodeEnv !== "test") {
+  startServer(app, config);
 }
 
 export default app;

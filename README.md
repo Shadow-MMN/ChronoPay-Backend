@@ -36,6 +36,44 @@ npm run dev
 npm run start
 ```
 
+## Environment validation
+
+ChronoPay now validates environment variables centrally at startup through `src/config/env.ts`.
+
+Currently validated variables used by `src`:
+
+- `NODE_ENV`
+  - optional
+  - default: `development`
+  - allowed: `development`, `test`, `production`
+- `PORT`
+  - optional
+  - default: `3001`
+  - must be an integer in the range `1` to `65535`
+
+### Startup failure behavior
+
+If configuration is invalid, the app fails fast before serving requests. Errors are aggregated and sanitized so they identify the variable names and reasons without echoing raw values.
+
+Example:
+
+```text
+Invalid environment configuration:
+- NODE_ENV must be one of: development, test, production.
+- PORT must be a whole number between 1 and 65535.
+```
+
+### Security notes
+
+- no partial startup on invalid configuration
+- whitespace-only values are rejected
+- numeric parsing is strict
+- no raw env values are leaked in validation errors
+
+Additional reviewer-focused notes live in:
+
+- `docs/environment-validation.md`
+
 ## Scripts
 
 | Script   | Description                    |
