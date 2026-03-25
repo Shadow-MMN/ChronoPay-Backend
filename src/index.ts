@@ -1,6 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { validateRequiredFields } from "./middleware/validation";
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
+import { validateRequiredFields } from "./middleware/validation.js";
+import { scheduleReminders } from "./services/reminderService.js";
+import { startScheduler } from "./scheduler/reminderScheduler.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -8,8 +12,6 @@ const PORT = process.env.PORT ?? 3001;
 app.use(cors());
 app.use(express.json());
 
-import swaggerUi from "swagger-ui-express";
-import swaggerJsdoc from "swagger-jsdoc";
 
 const options = {
   swaggerDefinition: {
@@ -36,19 +38,25 @@ app.post(
   (req, res) => {
     const { professional, startTime, endTime } = req.body;
 
+    const slot = {
+      id: Date.now(),
+      professional,
+      startTime,
+      endTime,
+    };
+
+    scheduleReminders(slot.id, startTime);
+
     res.status(201).json({
       success: true,
-      slot: {
-        id: 1,
-        professional,
-        startTime,
-        endTime,
-      },
+      slot,
     });
   },
 );
 
 if (process.env.NODE_ENV !== "test") {
+  startScheduler();
+
   app.listen(PORT, () => {
     console.log(`ChronoPay API listening on http://localhost:${PORT}`);
   });
