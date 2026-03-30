@@ -24,7 +24,12 @@ import { InMemorySlotRepository } from "./modules/slots/slot-repository.js";
 // Request logging middleware (must be first)
 app.use(createRequestLogger());
 
-app.use(cors());
+// Initialize CORS configuration from environment
+const corsConfig = getCORSConfig();
+validateCORSConfig(corsConfig);
+
+// Apply CORS middleware with allowlist validation
+app.use(createCORSMiddleware(corsConfig));
 app.use(express.json());
 app.use(metricsMiddleware);
 
