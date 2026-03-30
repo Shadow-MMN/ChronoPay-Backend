@@ -12,6 +12,8 @@ API backend for **ChronoPay** - time tokenization and scheduling marketplace on 
 
 - Node.js 20+
 - npm
+- Docker 20.10+ (optional, for containerized development)
+- Docker Compose 2.0+ (optional, for containerized development)
 
 ## Setup
 
@@ -20,8 +22,7 @@ API backend for **ChronoPay** - time tokenization and scheduling marketplace on 
 git clone <repo-url>
 cd chronopay-backend
 
-# Install dependencies
-npm install
+# Setup (choose one):
 
 # Configure environment variables
 cp .env.example .env
@@ -29,15 +30,24 @@ cp .env.example .env
 
 # Build
 npm run build
-
-# Run tests
 npm test
+npm run dev    # Start dev server with hot reload
 
-# Start dev server (with hot reload)
-npm run dev
+## Option 2: Docker Development (requires Docker)
+# Copy environment file
+cp .env.example .env
 
-# Start production server
-npm run start
+# Using helper script
+./scripts/docker-health.sh start
+
+# Or using docker-compose directly
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Run tests in container
+./scripts/docker-health.sh test
 ```
 
 ## Environment validation
