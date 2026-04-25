@@ -30,7 +30,7 @@ export function assertFeatureFlagGuardRegistration(
 export function requireFeatureFlag(flag: FeatureFlagName) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.flags.isEnabled(flag)) {
+      if (!req.flags!.isEnabled(flag)) {
         return res.status(503).json({
           success: false,
           code: "FEATURE_DISABLED",
